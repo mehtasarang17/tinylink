@@ -10,9 +10,8 @@ This project is built as a take-home assignment for Aganitha.
 ## Live Demo & Repos
 
 - **Live App:** https://<YOUR-RENDER-APP>.onrender.com
-- **GitHub Repo:** https://github.com/<your-username>/tinylink
-- **Demo Video:** <link to Loom / YouTube / Drive>
-- **ChatGPT Transcript:** <link to this conversation>
+- **GitHub Repo:** https://github.com/mehtasarang17/tinylink
+- **ChatGPT Transcript:** https://chatgpt.com/s/t_691df318c8a88191851ff5c54a529f66
 
 ---
 
