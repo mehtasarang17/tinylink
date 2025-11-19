@@ -36,9 +36,6 @@ function generateCode(length = 6) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static ONLY under /public (not at root!)
-app.use('/public', express.static(path.join(__dirname, '..', 'public')));
-
 // ----------------------
 // View Engine
 // ----------------------
@@ -249,6 +246,8 @@ app.delete('/api/links/:code', async (req, res) => {
   }
 });
 
+// Serve static ONLY under /public (not at root!)
+app.use('/public', express.static(path.join(__dirname, '..', 'public')));
 // ----------------------
 // ERROR HANDLER
 // ----------------------
