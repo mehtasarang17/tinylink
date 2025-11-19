@@ -1,104 +1,51 @@
-<%- include('layout', { title: 'TinyLink – Dashboard' }) %>
-
+<%-
+  include('layout', {
+    title: 'Stats – ' + link.code,
+    body: `
 <section class="space-y-6">
 
-  <div>
-    <h1 class="text-2xl font-semibold mb-2">Dashboard</h1>
-    <p class="text-sm text-slate-400">Create and manage your short links.</p>
-  </div>
+  <h1 class="text-2xl font-semibold">Stats for <span class="text-sky-400">${link.code}</span></h1>
 
-  <!-- Create Form -->
-  <form id="create-form" class="bg-slate-800/60 border border-slate-700 rounded-xl p-4 space-y-3">
-    <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium">Target URL</label>
-      <input
-        name="url"
-        type="url"
-        required
-        placeholder="https://example.com"
-        class="px-3 py-2 rounded-md bg-slate-900 border border-slate-700 text-sm"
-      />
+  <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+    <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
+      <dt class="text-xs uppercase text-slate-400">Target URL</dt>
+      <dd class="mt-1 break-all text-sm">${link.target_url}</dd>
     </div>
 
-    <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium">Custom Code (optional 6–8 chars)</label>
-      <input
-        name="code"
-        type="text"
-        minlength="6"
-        maxlength="8"
-        pattern="[A-Za-z0-9]{6,8}"
-        class="px-3 py-2 rounded-md bg-slate-900 border border-slate-700 text-sm"
-      />
+    <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
+      <dt class="text-xs uppercase text-slate-400">Short URL</dt>
+      <dd class="mt-1 text-sky-400 break-all">
+        ${baseUrl}/${link.code}
+      </dd>
     </div>
 
-    <div class="flex items-center gap-3">
-      <button class="px-4 py-2 rounded-md bg-sky-500 text-sm font-medium">
-        <span id="create-btn-label">Shorten</span>
-      </button>
-      <p id="form-message" class="text-sm"></p>
+    <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
+      <dt class="text-xs uppercase text-slate-400">Total Clicks</dt>
+      <dd class="mt-1 text-2xl font-semibold">${link.total_clicks}</dd>
     </div>
-  </form>
 
-  <!-- Links List -->
-  <section class="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
-    <h2 class="text-lg font-semibold mb-3">Links</h2>
+    <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
+      <dt class="text-xs uppercase text-slate-400">Last Clicked</dt>
+      <dd class="mt-1 text-sm">
+        ${
+          link.last_clicked_at
+            ? new Date(link.last_clicked_at).toLocaleString()
+            : 'Never'
+        }
+      </dd>
+    </div>
 
-    <% if (!links || links.length === 0) { %>
-      <p class="text-sm text-slate-400">No links yet. Create your first one above.</p>
-    <% } else { %>
+    <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
+      <dt class="text-xs uppercase text-slate-400">Created At</dt>
+      <dd class="mt-1 text-sm">${new Date(link.created_at).toLocaleString()}</dd>
+    </div>
 
-      <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead class="text-xs uppercase text-slate-400 border-b border-slate-700">
-            <tr>
-              <th class="py-2 pr-4">Short</th>
-              <th class="py-2 pr-4">Target URL</th>
-              <th class="py-2 pr-4 text-right">Clicks</th>
-              <th class="py-2 pr-4">Last Click</th>
-              <th class="py-2 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-800">
-            <% links.forEach(link => { %>
-              <tr>
-                <td class="py-2 pr-4">
-                  <a href="<%= baseUrl + '/' + link.code %>" class="text-sky-400 hover:underline" target="_blank">
-                    <%= link.code %>
-                  </a>
-                </td>
+  </dl>
 
-                <td class="py-2 pr-4 max-w-xs">
-                  <div class="truncate text-slate-300" title="<%= link.target_url %>">
-                    <%= link.target_url %>
-                  </div>
-                </td>
-
-                <td class="py-2 pr-4 text-right">
-                  <%= link.total_clicks %>
-                </td>
-
-                <td class="py-2 pr-4 text-xs text-slate-400">
-                  <%= link.last_clicked_at ? new Date(link.last_clicked_at).toLocaleString() : '—' %>
-                </td>
-
-                <td class="py-2 text-right">
-                  <button data-url="<%= baseUrl + '/' + link.code %>" 
-                          class="copy-btn px-2 py-1 text-xs bg-slate-700 rounded">Copy</button>
-
-                  <a href="/code/<%= link.code %>" 
-                     class="px-2 py-1 text-xs bg-slate-700 rounded">Stats</a>
-
-                  <button data-code="<%= link.code %>" 
-                          class="delete-btn px-2 py-1 text-xs bg-rose-600 rounded">Delete</button>
-                </td>
-              </tr>
-            <% }) %>
-          </tbody>
-        </table>
-      </div>
-
-    <% } %>
-  </section>
+  <a href="/" class="text-sky-400 hover:underline text-sm">← Back to Dashboard</a>
 
 </section>
+`
+  });
+%>
