@@ -39,19 +39,27 @@ async function createLink(event) {
 }
 
 // Copy short URL
-function setupCopyButtons() {
-  document.querySelectorAll('.copy-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(btn.dataset.url);
-        btn.textContent = 'Copied!';
-        setTimeout(() => (btn.textContent = 'Copy'), 1500);
-      } catch {
-        alert('Failed to copy');
-      }
-    });
-  });
-}
+document.addEventListener("click", async (e) => {
+  if (e.target.classList.contains("copy-btn")) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const url = e.target.getAttribute("data-url");
+
+    try {
+      await navigator.clipboard.writeText(url);
+
+      e.target.textContent = "Copied!";
+      setTimeout(() => {
+        e.target.textContent = "Copy";
+      }, 1000);
+    } catch (err) {
+      console.error("Copy failed:", err);
+      alert("Unable to copy");
+    }
+  }
+});
+
 
 // Delete link
 function setupDeleteButtons() {
@@ -76,6 +84,5 @@ function setupDeleteButtons() {
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('create-form');
   if (form) form.addEventListener('submit', createLink);
-  setupCopyButtons();
   setupDeleteButtons();
 });

@@ -10,15 +10,44 @@ const PORT = process.env.PORT || 3000;
 
 const db = require('./db');
 
+// Validate URL
+function isValidUrl(str) {
+  try {
+    const url = new URL(str);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+// Generate random 6–8 character code
+function generateCode(length = 6) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let code = '';
+  for (let i = 0; i < length; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+}
+
+// ----------------------
 // Middleware
+// ----------------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static ONLY under /public (not at root!)
+app.use('/public', express.static(path.join(__dirname, '..', 'public')));
+
+// ----------------------
 // View Engine
+// ----------------------
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '..', 'views'));
 
+// ----------------------
 // Healthcheck
+// ----------------------
 app.get('/healthz', (req, res) => {
   res.status(200).json({
     ok: true,
@@ -28,9 +57,41 @@ app.get('/healthz', (req, res) => {
   });
 });
 
-// -----------------------------
-// DASHBOARD (MUST BE ABOVE REDIRECT)
-// -----------------------------
+// ----------------------
+// REDIRECT ROUTE MUST COME FIRST
+// ----------------------
+app.get('/:code', async (req, res, next) => {
+  const { code } = req.params;
+
+  // Ignore routes that are not short codes
+  if (['api', 'public', 'code', 'healthz', '', 'favicon.ico'].includes(code)) {
+    return next();
+  }
+
+  try {
+    const result = await db.query(
+      `UPDATE links
+       SET total_clicks = total_clicks + 1,
+           last_clicked_at = NOW()
+       WHERE code = $1 AND deleted_at IS NULL
+       RETURNING target_url`,
+      [code]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).render('404', { message: 'Short link not found.' });
+    }
+
+    return res.redirect(result.rows[0].target_url);
+  } catch (err) {
+    console.error('Redirect error:', err);
+    return res.status(500).render('404', { message: 'Redirect failed.' });
+  }
+});
+
+// ----------------------
+// DASHBOARD PAGE
+// ----------------------
 app.get('/', async (req, res) => {
   try {
     const result = await db.query(
@@ -50,9 +111,9 @@ app.get('/', async (req, res) => {
   }
 });
 
-// -----------------------------
+// ----------------------
 // STATS PAGE
-// -----------------------------
+// ----------------------
 app.get('/code/:code', async (req, res) => {
   const { code } = req.params;
 
@@ -78,9 +139,9 @@ app.get('/code/:code', async (req, res) => {
   }
 });
 
-// -----------------------------
+// ----------------------
 // API ROUTES
-// -----------------------------
+// ----------------------
 app.post('/api/links', async (req, res) => {
   try {
     let { url, code } = req.body;
@@ -188,39 +249,20 @@ app.delete('/api/links/:code', async (req, res) => {
   }
 });
 
-// -----------------------------
-// SHORT URL REDIRECT (MUST BE LAST BEFORE STATIC)
-// -----------------------------
-app.get('/:code', async (req, res) => {
-  const { code } = req.params;
+// ----------------------
+// ERROR HANDLER
+// ----------------------
+app.use((err, req, res, next) => {
+  console.error(err);
 
-  try {
-    const result = await db.query(
-      `UPDATE links
-       SET total_clicks = total_clicks + 1,
-           last_clicked_at = NOW()
-       WHERE code = $1 AND deleted_at IS NULL
-       RETURNING target_url`,
-      [code]
-    );
-
-    if (result.rowCount === 0) {
-      return res.status(404).render('404', { message: 'Short link not found.' });
-    }
-
-    return res.redirect(result.rows[0].target_url);
-  } catch (err) {
-    console.error('Redirect error:', err);
-    return res.status(500).render('404', { message: 'Redirect failed.' });
+  if (req.path.startsWith('/api/')) {
+    return res.status(500).json({ error: 'Internal server error' });
   }
+
+  return res.status(500).render('404', { message: 'Something went wrong.' });
 });
 
-// -----------------------------
-// STATIC FILES (MUST BE LAST)
-// -----------------------------
-app.use('/public', express.static(path.join(__dirname, '..', 'public')));
-
-// -----------------------------
+// ----------------------
 app.listen(PORT, () => {
-  console.log("Server started on port", PORT);
+  console.log(`Server running on http://localhost:${PORT}`);
 });
