@@ -1,18 +1,13 @@
-<%-
-  include('layout', {
-    title: 'TinyLink – Dashboard',
-    body: `
+<%- include('layout', { title: 'TinyLink – Dashboard' }) %>
+
 <section class="space-y-6">
 
-  <!-- Header -->
   <div>
     <h1 class="text-2xl font-semibold mb-2">Dashboard</h1>
-    <p class="text-sm text-slate-400">
-      Create and manage your short links.
-    </p>
+    <p class="text-sm text-slate-400">Create and manage your short links.</p>
   </div>
 
-  <!-- Create Link Form -->
+  <!-- Create Form -->
   <form id="create-form" class="bg-slate-800/60 border border-slate-700 rounded-xl p-4 space-y-3">
     <div class="flex flex-col gap-2">
       <label class="text-sm font-medium">Target URL</label>
@@ -20,103 +15,90 @@
         name="url"
         type="url"
         required
-        placeholder="https://example.com/long/url"
-        class="px-3 py-2 rounded-md bg-slate-900 border border-slate-700 text-sm focus:outline-none focus:ring focus:ring-sky-500"
+        placeholder="https://example.com"
+        class="px-3 py-2 rounded-md bg-slate-900 border border-slate-700 text-sm"
       />
     </div>
 
     <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium">Custom Code (optional, 6–8 chars)</label>
+      <label class="text-sm font-medium">Custom Code (optional 6–8 chars)</label>
       <input
         name="code"
         type="text"
         minlength="6"
         maxlength="8"
         pattern="[A-Za-z0-9]{6,8}"
-        class="px-3 py-2 rounded-md bg-slate-900 border border-slate-700 text-sm focus:outline-none focus:ring focus:ring-sky-500"
+        class="px-3 py-2 rounded-md bg-slate-900 border border-slate-700 text-sm"
       />
     </div>
 
     <div class="flex items-center gap-3">
-      <button
-        type="submit"
-        class="inline-flex items-center px-4 py-2 rounded-md bg-sky-500 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-      >
+      <button class="px-4 py-2 rounded-md bg-sky-500 text-sm font-medium">
         <span id="create-btn-label">Shorten</span>
       </button>
       <p id="form-message" class="text-sm"></p>
     </div>
   </form>
 
-  <!-- Links Table -->
+  <!-- Links List -->
   <section class="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
     <h2 class="text-lg font-semibold mb-3">Links</h2>
 
-    ${
-      links.length === 0
-        ? `<p class="text-sm text-slate-400">No links yet. Create one above.</p>`
-        : `
-    <div class="overflow-x-auto">
-      <table class="min-w-full text-sm">
-        <thead class="text-xs uppercase text-slate-400 border-b border-slate-700">
-          <tr>
-            <th class="py-2 pr-4 text-left">Short</th>
-            <th class="py-2 pr-4 text-left">Target URL</th>
-            <th class="py-2 pr-4 text-right">Clicks</th>
-            <th class="py-2 pr-4 text-left">Last Click</th>
-            <th class="py-2 text-right">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-800">
-          ${links
-            .map(link => {
-              const shortUrl = `${baseUrl}/${link.code}`;
-              return `
+    <% if (!links || links.length === 0) { %>
+      <p class="text-sm text-slate-400">No links yet. Create your first one above.</p>
+    <% } else { %>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead class="text-xs uppercase text-slate-400 border-b border-slate-700">
+            <tr>
+              <th class="py-2 pr-4">Short</th>
+              <th class="py-2 pr-4">Target URL</th>
+              <th class="py-2 pr-4 text-right">Clicks</th>
+              <th class="py-2 pr-4">Last Click</th>
+              <th class="py-2 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800">
+            <% links.forEach(link => { %>
               <tr>
                 <td class="py-2 pr-4">
-                  <a href="${shortUrl}" class="text-sky-400 hover:underline" target="_blank">
-                    ${link.code}
+                  <a href="<%= baseUrl + '/' + link.code %>" class="text-sky-400 hover:underline" target="_blank">
+                    <%= link.code %>
                   </a>
                 </td>
 
                 <td class="py-2 pr-4 max-w-xs">
-                  <div class="truncate text-slate-300" title="${link.target_url}">
-                    ${link.target_url}
+                  <div class="truncate text-slate-300" title="<%= link.target_url %>">
+                    <%= link.target_url %>
                   </div>
                 </td>
 
                 <td class="py-2 pr-4 text-right">
-                  ${link.total_clicks}
+                  <%= link.total_clicks %>
                 </td>
 
-                <td class="py-2 pr-4 text-left text-xs text-slate-400">
-                  ${
-                    link.last_clicked_at
-                      ? new Date(link.last_clicked_at).toLocaleString()
-                      : '—'
-                  }
+                <td class="py-2 pr-4 text-xs text-slate-400">
+                  <%= link.last_clicked_at ? new Date(link.last_clicked_at).toLocaleString() : '—' %>
                 </td>
 
                 <td class="py-2 text-right">
-                  <div class="flex justify-end gap-2">
-                    <button data-url="${shortUrl}" class="copy-btn px-2 py-1 text-xs rounded bg-slate-700 hover:bg-slate-600">Copy</button>
+                  <button data-url="<%= baseUrl + '/' + link.code %>" 
+                          class="copy-btn px-2 py-1 text-xs bg-slate-700 rounded">Copy</button>
 
-                    <a href="/code/${link.code}" class="px-2 py-1 text-xs rounded bg-slate-700 hover:bg-slate-600">Stats</a>
+                  <a href="/code/<%= link.code %>" 
+                     class="px-2 py-1 text-xs bg-slate-700 rounded">Stats</a>
 
-                    <button data-code="${link.code}" class="delete-btn px-2 py-1 text-xs rounded bg-rose-600 hover:bg-rose-500">Delete</button>
-                  </div>
+                  <button data-code="<%= link.code %>" 
+                          class="delete-btn px-2 py-1 text-xs bg-rose-600 rounded">Delete</button>
                 </td>
-              </tr>`;
-            })
-            .join('')}
-        </tbody>
-      </table>
-    </div>
-    `
-    }
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+    <% } %>
   </section>
 
 </section>
-`
-  });
-%>
