@@ -1,3 +1,5 @@
+console.log("ENV PORT =", process.env.PORT);
+
 // src/app.js
 const express = require('express');
 const path = require('path');
