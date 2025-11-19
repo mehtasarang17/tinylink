@@ -1,0 +1,51 @@
+<%-
+  include('layout', {
+    title: 'Stats – ' + link.code,
+    body: `
+<section class="space-y-6">
+
+  <h1 class="text-2xl font-semibold">Stats for <span class="text-sky-400">${link.code}</span></h1>
+
+  <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+    <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
+      <dt class="text-xs uppercase text-slate-400">Target URL</dt>
+      <dd class="mt-1 break-all text-sm">${link.target_url}</dd>
+    </div>
+
+    <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
+      <dt class="text-xs uppercase text-slate-400">Short URL</dt>
+      <dd class="mt-1 text-sky-400 break-all">
+        ${baseUrl}/${link.code}
+      </dd>
+    </div>
+
+    <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
+      <dt class="text-xs uppercase text-slate-400">Total Clicks</dt>
+      <dd class="mt-1 text-2xl font-semibold">${link.total_clicks}</dd>
+    </div>
+
+    <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
+      <dt class="text-xs uppercase text-slate-400">Last Clicked</dt>
+      <dd class="mt-1 text-sm">
+        ${
+          link.last_clicked_at
+            ? new Date(link.last_clicked_at).toLocaleString()
+            : 'Never'
+        }
+      </dd>
+    </div>
+
+    <div class="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
+      <dt class="text-xs uppercase text-slate-400">Created At</dt>
+      <dd class="mt-1 text-sm">${new Date(link.created_at).toLocaleString()}</dd>
+    </div>
+
+  </dl>
+
+  <a href="/" class="text-sky-400 hover:underline text-sm">← Back to Dashboard</a>
+
+</section>
+`
+  });
+%>
