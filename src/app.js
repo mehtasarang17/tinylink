@@ -80,33 +80,6 @@ app.get('/', async (req, res) => {
   }
 });
 
-// ----------------------
-// STATS PAGE
-// ----------------------
-app.get('/code/:code', async (req, res) => {
-  const { code } = req.params;
-
-  try {
-    const result = await db.query(
-      `SELECT code, target_url, total_clicks, last_clicked_at, created_at
-       FROM links
-       WHERE code = $1 AND deleted_at IS NULL`,
-      [code]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).render('404', { message: 'Short link not found' });
-    }
-
-    res.render('stats', {
-      link: result.rows[0],
-      baseUrl: process.env.BASE_URL || `http://localhost:${PORT}`,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).render('404', { message: 'Something went wrong' });
-  }
-});
 
 // ----------------------
 // API ROUTES
@@ -255,6 +228,31 @@ app.get('/:code', async (req, res) => {
     return res
       .status(500)
       .render('404', { message: 'Something went wrong while redirecting' });
+  }
+});
+
+app.get('/code/:code', async (req, res) => {
+  const { code } = req.params;
+
+  try {
+    const result = await db.query(
+      `SELECT code, target_url, total_clicks, last_clicked_at, created_at
+       FROM links
+       WHERE code = $1 AND deleted_at IS NULL`,
+      [code]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).render('404', { message: 'Short link not found' });
+    }
+
+    res.render('stats', {
+      link: result.rows[0],
+      baseUrl: process.env.BASE_URL || `http://localhost:${PORT}`,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).render('404', { message: 'Something went wrong' });
   }
 });
 
