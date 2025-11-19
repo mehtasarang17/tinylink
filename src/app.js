@@ -191,45 +191,45 @@ app.delete('/api/links/:code', async (req, res) => {
   }
 });
 
-app.get('/:code', async (req, res) => {
-  const { code } = req.params;
+// app.get('/:code', async (req, res) => {
+//   const { code } = req.params;
 
-  // Skip only REAL prefixes
-  if (['api', 'public', 'code', 'healthz', 'favicon.ico'].includes(code)) {
-    return res.status(404).render('404', { message: 'Not found' });
-  }
+//   // Skip only REAL prefixes
+//   if (['api', 'public', 'code', 'healthz', 'favicon.ico'].includes(code)) {
+//     return res.status(404).render('404', { message: 'Not found' });
+//   }
 
-  try {
-    const result = await db.query(
-      `UPDATE links
-       SET total_clicks = total_clicks + 1,
-           last_clicked_at = NOW()
-       WHERE code = $1 AND deleted_at IS NULL
-       RETURNING target_url`,
-      [code]
-    );
+//   try {
+//     const result = await db.query(
+//       `UPDATE links
+//        SET total_clicks = total_clicks + 1,
+//            last_clicked_at = NOW()
+//        WHERE code = $1 AND deleted_at IS NULL
+//        RETURNING target_url`,
+//       [code]
+//     );
 
-    if (result.rowCount === 0) {
-      return res
-        .status(404)
-        .render('404', { message: 'Short link not found or deleted' });
-    }
+//     if (result.rowCount === 0) {
+//       return res
+//         .status(404)
+//         .render('404', { message: 'Short link not found or deleted' });
+//     }
 
-    let targetUrl = result.rows[0].target_url;
+//     let targetUrl = result.rows[0].target_url;
 
-    // Normalize URLs missing protocol
-    if (!/^https?:\/\//i.test(targetUrl)) {
-      targetUrl = 'https://' + targetUrl;
-    }
+//     // Normalize URLs missing protocol
+//     if (!/^https?:\/\//i.test(targetUrl)) {
+//       targetUrl = 'https://' + targetUrl;
+//     }
 
-    return res.redirect(302, targetUrl);
-  } catch (err) {
-    console.error('Redirect error:', err);
-    return res
-      .status(500)
-      .render('404', { message: 'Something went wrong while redirecting' });
-  }
-});
+//     return res.redirect(302, targetUrl);
+//   } catch (err) {
+//     console.error('Redirect error:', err);
+//     return res
+//       .status(500)
+//       .render('404', { message: 'Something went wrong while redirecting' });
+//   }
+// });
 
 app.get('/code/:code', async (req, res) => {
   const { code } = req.params;
@@ -255,6 +255,42 @@ app.get('/code/:code', async (req, res) => {
     res.status(500).render('404', { message: 'Something went wrong' });
   }
 });
+
+// ----------------------
+// REDIRECT ROUTE (LAST)
+// ----------------------
+app.get('/:code', async (req, res) => {
+  const { code } = req.params;
+
+  // Skip system paths
+  if (['api', 'public', 'code', 'healthz', 'favicon.ico'].includes(code)) {
+    return res.status(404).render('404', { message: 'Not found' });
+  }
+
+  try {
+    const result = await db.query(
+      `UPDATE links
+       SET total_clicks = total_clicks + 1,
+           last_clicked_at = NOW()
+       WHERE code = $1 AND deleted_at IS NULL
+       RETURNING target_url`,
+      [code]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).render('404', { message: 'Short link not found' });
+    }
+
+    let target = result.rows[0].target_url;
+    if (!/^https?:\/\//i.test(target)) target = `https://${target}`;
+
+    return res.redirect(302, target);
+  } catch (err) {
+    console.error('Redirect error:', err);
+    return res.status(500).render('404', { message: 'Redirect failed' });
+  }
+});
+
 
 // ----------------------
 // ERROR HANDLER
